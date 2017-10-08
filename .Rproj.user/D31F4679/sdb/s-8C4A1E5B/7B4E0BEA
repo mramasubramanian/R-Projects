@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"Kaggle - Rainfall Data\"\nauthor: \"Manikandan R\"\ndate: \"8 October 2017\"\noutput: pdf_document\n---\n\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\n```\n\n",
+    "created" : 1507471663455.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "1313946966",
+    "id" : "7B4E0BEA",
+    "lastKnownWriteTime" : 3419473789575321445,
+    "last_content_update" : 1507471674789,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
