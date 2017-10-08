@@ -1,0 +1,300 @@
+---
+title: "RainfallData_Kaggle"
+author: "Manikandan R"
+date: "3 October 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Context
+#This data set contains monthly rainfall detail of 36 meteorological sub-divisions of India.
+
+#Content
+
+#Time Period: 1901 - 2015
+#Granularity: Monthly
+#Location: 36 meteorological sub-divisions in India
+#Rainfall unit: mm
+
+#Frame the Problem: Identify the key question are you trying to answer
+# Rainfall data downloaded from the following link  https://www.kaggle.com/rajanand/rainfall-in-india 
+# Which year registered highest rainfall ?
+# Which Month registered highest rainfall ?
+# Which subdivision registered highest rainfall for a given year ?
+# Predict Rainfall for 2016 ad more months ?
+
+
+
+
+Acquire the Data: Get the dataset to answer the question.
+```{r}
+getwd()
+setwd("C:\\Users\\Iyshu\\Desktop\\GreatLakes\\Public data")
+Rainfall <- read.csv(file = "rainfall in india 1901-2015.csv", header =  TRUE, sep =",")
+```
+
+
+```{r}
+bak <- Rainfall
+str(Rainfall)
+colnames(Rainfall)
+
+```
+
+Refine the Data: Do the basic refinement to clean up the dataset. 
+Seems no much refinement is needed for this dataset. :-)
+
+```{r}
+unique(Rainfall)
+head(Rainfall)
+
+Rainfall$SUBDIVISION <- as.character(Rainfall$SUBDIVISION)
+str(Rainfall$SUBDIVISION)
+
+```
+
+
+```{r}
+library(ggplot2)
+library(tidyr)
+library(rvest)
+library(stringr)
+library(plyr)
+library(plotly)
+library(tidyverse)
+
+```
+Transform the Data: Do the transformation needed for the dataset.
+There is no much transfermation needed for this data :-)
+
+
+```{r}
+ChangeName <- c("ANDAMAN & NICOBAR ISLANDS"  = "A&N",         
+      "ARUNACHAL PRADESH"            = "ACP",       
+      "ASSAM & MEGHALAYA"           = "ASM",       
+      "NAGA MANI MIZO TRIPURA"       = "TRP",      
+      "SUB HIMALAYAN WEST BENGAL & SIKKIM" = "SIK",
+      "GANGETIC WEST BENGAL"  = "GWB",              
+      "ORISSA"                  = "ORI",           
+      "JHARKHAND"               = "JRD",           
+      "BIHAR"                   = "BIH",           
+      "EAST UTTAR PRADESH"     = "EUP",            
+      "WEST UTTAR PRADESH"     = "WUP",            
+      "UTTARAKHAND"            = "UTD",            
+      "HARYANA DELHI & CHANDIGARH" = "CHD",
+      "PUNJAB"                       = "PNB",      
+      "HIMACHAL PRADESH" = "HIP",
+      "JAMMU & KASHMIR" =   "J&K",
+      "WEST RAJASTHAN"  = "WRJ"  ,                    
+      "EAST RAJASTHAN"  = "ERJ"  ,                 
+      "WEST MADHYA PRADESH" = "WMP",               
+      "EAST MADHYA PRADESH" = "EMP",               
+      "GUJARAT REGION"= "GUJ",                     
+      "SAURASHTRA & KUTCH" = "SAU",                
+      "KONKAN & GOA"  = "GOA",                    
+      "MADHYA MAHARASHTRA" = "MMH",                 
+      "MATATHWADA" = "MAT",                         
+      "VIDARBHA" = "VID" ,                          
+      "CHHATTISGARH" = "CHT",                       
+      "COASTAL ANDHRA PRADESH" = "CAP",             
+      "TELANGANA" = "TEL",                           
+      "RAYALSEEMA" = "RAY",                         
+      "TAMIL NADU" = "TN",                         
+      "COASTAL KARNATAKA" = "CKA",                  
+      "NORTH INTERIOR KARNATAKA" = "NKA",           
+      "SOUTH INTERIOR KARNATAKA" = "SKA",           
+      "KERALA" = "KER",                             
+      "LAKSHADWEEP" = "LAK") 
+
+
+Rainfall$SUBDIVISION <- revalue(Rainfall$SUBDIVISION, ChangeName)
+summary(is.na.data.frame(Rainfall))
+unique(Rainfall$SUBDIVISION)
+```
+
+Explore the Data: Create the 3 - 4 individual visualisation that explore the dataset.
+
+
+Findout NAs and Transform the data to appropriately
+
+```{r}
+Rainfall[!complete.cases(Rainfall),]
+Rainfall$YEAR <- as.numeric(Rainfall$YEAR)
+Rainfall$SUBDIVISION <- as.factor(Rainfall$SUBDIVISION)
+```
+
+Treat missing values in all the column 
+
+
+```{r}
+#install.packages("DMwR")
+str(Rainfall)
+library(DMwR)
+knnOutput <- knnImputation(Rainfall[, !names(Rainfall) %in% "medv"])  # perform knn imputation.
+anyNA(knnOutput)
+```
+
+
+```{r}
+knnOutput[!complete.cases(knnOutput),]
+head(knnOutput)
+unique(Rainfall$SUBDIVISION)
+```
+
+```{r}
+summary(is.na.data.frame(knnOutput))
+str(knnOutput)
+
+```
+Explore the Data: Create the 3 - 4 individual visualisation that explore the dataset.
+
+```{r}
+
+ggplot(data=knnOutput, aes(x=knnOutput$YEAR, y = knnOutput$ANNUAL, group=knnOutput$ANNUAL, fill = knnOutput$YEAR                           )) +
+    geom_line() +
+    geom_point()
+
+```
+
+```{r}
+ggplot(data=knnOutput, aes(x=YEAR
+                           , y=ANNUAL, fill=SUBDIVISION)) +
+    geom_bar(stat="identity",position=position_dodge(),color="Red") 
+#facet_wrap( ~ ANNUAL, ncol=3) 
+```
+
+
+
+```{r}
+
+
+ggplot(data=knnOutput) + geom_bar(aes(x=reorder(SUBDIVISION, -ANNUAL), y=ANNUAL),stat="identity",width=0.5) +
+  ylab("Annual rainfall in mm") +
+  ggtitle("Subdivision received rainfall") +
+  theme(axis.text.x = element_text(angle=60, hjust=1,size=7), aspect.ratio = 0.9,axis.ticks = element_blank()) 
+  #coord_flip()
+
+  
+```
+
+
+```{r}
+
+newData <- knnOutput
+head(newData)
+knnOutput$ANNUAL<- as.numeric(knnOutput$ANNUAL)
+str(knnOutput)
+knnOutput <- knnOutput %>% 
+             #group_by(knnOutput$SUBDIVISION) %>%
+		         select(knnOutput$SUBDIVISION,knnOutput$ANNUAL)
+
+head(10)
+```
+
+
+
+```{r}
+max(knnOutput$YEAR)
+min(knnOutput$YEAR)
+```
+
+```{r}
+annual<-newData[,1]
+head(annual)
+a=ts(annual,start=1800,end=2000,frequency = 12)
+a
+```
+
+
+
+```{r}
+plot.ts(a)
+```
+```{r}
+plot(knnOutput$ANNUAL ~ knnOutput$YEAR, type="h", xlab="Year", ylab="Annual rainfail in mm", col="blue")
+
+```
+
+
+```{r}
+
+head(knnOutput)
+knnOutput$SUBDIVISION <- as.factor(knnOutput$SUBDIVISION)
+knnOutput %>% group_by(YEAR,SUBDIVISION) %>%
+           ts(start=c(1901,1), freq=1) -> rain_ts 
+          rain_ts %>% window(c(1901,1),c(2014,1))
+          
+```
+```{r}
+
+ggplot(data=knnOutput) +
+   geom_bar(aes(x=SUBDIVISION, y=ANNUAL), stat="identity",width = 0.5)+
+  ylab("Annual rainfall in mm") +
+  ggtitle("Location ") +
+  theme(axis.text.x = element_text(angle=60, hjust=1, size=7), aspect.ratio=0.9, axis.ticks=element_blank())
+```
+
+
+
+Lets see the rainfall data with the interactive graph.
+
+
+```{r}
+#install.packages("dygraphs")
+library(dygraphs) # A dynamic graph library
+rain_ts %>% dygraph(width=600,height=300) %>% dyRangeSelector
+
+
+```
+
+
+```{r}
+rain_ts %>% dygraph(width=600,height=300) %>% dyRangeSelector %>% dyRoller(rollPeriod = 600)
+
+```
+
+
+```{r}
+hrf <- newData
+```
+
+```{r}
+
+quarter <- hrf[,c(-3:-14)]
+quarter$SUBDIVISION <- as.character(quarter$SUBDIVISION)
+str(quarter)
+plot(lm(formula = YEAR ~ ANNUAL, data=quarter))
+
+
+
+
+```
+
+
+
+```{r}
+barplot(quarter$ANNUAL, quarter$YEAR , col="blue", lwd=2,
+        xlab = "Year of rainfall", ylab="Annual rain in mm", border=par("fg"))
+```
+```{r}
+ha = HoltWinters(a,beta=F,gamma=F)
+ha
+ha$fitted
+ha$SSE
+```
+
+Prediction for next 100 months with the available data
+
+
+```{r}
+library(forecast)
+fha =forecast:::forecast.HoltWinters(ha,h=100)
+fha
+forecast:::plot.forecast(fha)
+```
+
+The above analysis answers some of the questions defined initially.
+
+
